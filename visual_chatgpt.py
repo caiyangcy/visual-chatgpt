@@ -971,13 +971,13 @@ class InfinityOutPainting:
 
 
 class ConversationBot:
-    def __init__(self, load_dict):
+    def __init__(self, load_dict, index):
         # load_dict = {'VisualQuestionAnswering':'cuda:0', 'ImageCaptioning':'cuda:1',...}
         print(f"Initializing VisualChatGPT, load_dict={load_dict}")
         if 'ImageCaptioning' not in load_dict:
             raise ValueError("You have to load ImageCaptioning as a basic function for VisualChatGPT")
 
-        self.llm = OpenAI(temperature=0)
+        self.llm = OpenAI(temperature=0, model_name=index)
         self.memory = ConversationBufferMemory(memory_key="chat_history", output_key='output')
 
         self.models = {}
@@ -1045,9 +1045,11 @@ class ConversationBot:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--load', type=str, default="ImageCaptioning_cuda:0,Text2Image_cuda:0")
+    parser.add_argument('--index', type=str, default="text-davinci-003", help="Model index used by OpenAI")
     args = parser.parse_args()
     load_dict = {e.split('_')[0].strip(): e.split('_')[1].strip() for e in args.load.split(',')}
-    bot = ConversationBot(load_dict=load_dict)
+    openai_index = args.index
+    bot = ConversationBot(load_dict=load_dict, index=openai_index)
     with gr.Blocks(css="#chatbot .overflow-y-auto{height:500px}") as demo:
         chatbot = gr.Chatbot(elem_id="chatbot", label="Visual ChatGPT")
         state = gr.State([])
